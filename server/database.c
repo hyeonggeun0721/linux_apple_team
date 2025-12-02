@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sqlite3.h>
+#include "sqlite3.h"
 #include "database.h"
 
 sqlite3 *db;
@@ -59,7 +59,7 @@ void close_database() {
     sqlite3_close(db);
 }
 
-// (예시) 회원가입 함수
+// 회원가입 함수
 int create_user(char *id, char *pw, char *nickname) {
     char sql[256];
     char *errMsg = 0;
@@ -73,4 +73,27 @@ int create_user(char *id, char *pw, char *nickname) {
         return 0; // 실패 (중복 ID 등)
     }
     return 1; // 성공
+}
+
+// 로그인 확인 함수 (성공: 1, 실패: 0)
+int check_login(char *id, char *pw) {
+    char sql[256];
+    sqlite3_stmt *stmt;
+    
+    // SQL: Users 테이블에서 ID와 PW가 일치하는지 조회
+    sprintf(sql, "SELECT * FROM Users WHERE ID='%s' AND PASSWORD='%s';", id, pw);
+
+    // 쿼리 준비
+    if (sqlite3_prepare_v2(db, sql, -1, &stmt, 0) != SQLITE_OK) {
+        return 0; // DB 에러
+    }
+
+    // 결과 확인 (한 줄이라도 나오면 성공)
+    int result = 0;
+    if (sqlite3_step(stmt) == SQLITE_ROW) {
+        result = 1; // 로그인 성공
+    }
+
+    sqlite3_finalize(stmt); // 정리
+    return result;
 }
