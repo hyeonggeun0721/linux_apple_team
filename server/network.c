@@ -22,7 +22,7 @@ void init_server() {
     printf("Server listening on port %d...\n", PORT);
 }
 
-void wait_for_players() {
+/*void wait_for_players() {
     struct sockaddr_in client_addr;
     socklen_t addr_len = sizeof(client_addr);
     printf("Waiting for players...\n");
@@ -34,7 +34,7 @@ void wait_for_players() {
         write(client_fds[i], msg, strlen(msg));
     }
     printf("Both connected!\n");
-}
+}*/
 
 void broadcast(char *msg) {
     for (int i = 0; i < 2; i++) if (client_fds[i] > 0) write(client_fds[i], msg, strlen(msg));
