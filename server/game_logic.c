@@ -8,12 +8,15 @@
 int board[ROWS][COLS];
 int scores[2] = {0, 0};
 int current_turn = 0;
+// [추가] 소유권 배열 정의
+int owner_board[ROWS][COLS];
 
 void init_board() {
     srand(time(NULL));
     for(int i=0; i<ROWS; i++) {
         for(int j=0; j<COLS; j++) {
             board[i][j] = (rand() % 9) + 1;
+            owner_board[i][j] = -1; // [추가] 초기에는 주인 없음 (-1)
         }
     }
 }
