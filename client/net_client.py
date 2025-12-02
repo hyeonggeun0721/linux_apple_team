@@ -89,34 +89,41 @@ def receive_message(root_window):
                         print("서버와 보드 동기화 완료!")
 
                 # --- 3. VALID: 정답 처리 (핵심 수정) ---
+                # --- 3. VALID: 정답 처리 ---
                 elif command == "VALID":
-                    if len(parts) < 7: continue
+                    # [수정] 인자가 늘어남 (score1, score2)
+                    # VALID <pid> <r1> <c1> <r2> <c2> <score1> <score2>
+                    if len(parts) < 8: continue # 길이 체크 수정 (8개여야 함)
+                    
                     who_moved = int(parts[1])
                     r1, c1, r2, c2 = map(int, parts[2:6])
-                    new_score = int(parts[6])
+                    
+                    # [수정] 두 명의 점수를 모두 받음
+                    server_score_p1 = int(parts[6])
+                    server_score_p2 = int(parts[7])
 
                     is_my_move = (who_moved == constants.MY_PLAYER_ID)
                     player_type = "human" if is_my_move else "ai"
                     
-                    # 점수 업데이트
-                    if is_my_move:
-                        game_model.current_game.player_scores['human'] = new_score
-                    else:
-                        game_model.current_game.player_scores['ai'] = new_score
+                    # [수정] 점수판 업데이트 (내 ID에 맞춰서 할당)
+                    if constants.MY_PLAYER_ID == 0: # 내가 Player 1이면
+                        game_model.current_game.player_scores['human'] = server_score_p1
+                        game_model.current_game.player_scores['ai'] = server_score_p2
+                    else: # 내가 Player 2면
+                        game_model.current_game.player_scores['human'] = server_score_p2
+                        game_model.current_game.player_scores['ai'] = server_score_p1
 
                     cells_to_animate = []
                     for r in range(r1, r2 + 1):
                         for c in range(c1, c2 + 1):
-                            # [수정] 숫자가 0이든 아니든 '소유권'은 무조건 업데이트해야 색이 칠해짐
                             if game_model.current_game.board[r][c] != 0:
-                                game_model.current_game.board[r][c] = 0 # 숫자 지우기
+                                game_model.current_game.board[r][c] = 0          
                             
-                            # 소유권 설정 (색깔 변경의 핵심)
-                            game_model.current_game.owner_board[r][c] = player_type
+                            # 소유권 덮어쓰기 (뺏기)
+                            game_model.current_game.owner_board[r][c] = player_type 
                             cells_to_animate.append((r, c))
                     
-                    # [GUI] 애니메이션 실행 (메인 스레드 요청)
-                    root_window.after(0, lambda cells=cells_to_animate, p=player_type: _animate_cell_fill(cells, p))
+                    gui_view._animate_cell_fill(cells_to_animate, player_type)
 
                 # --- 4. TURN_CHANGE: 턴 변경 ---
                 elif command == "TURN_CHANGE":
