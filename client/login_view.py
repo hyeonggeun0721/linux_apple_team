@@ -118,7 +118,7 @@ class LoginApp:
         frame = tk.Frame(self.master, padx=20, pady=20)
         frame.pack(expand=True)
 
-        tk.Label(frame, text="🍄 Net-Mushroom", font=("Helvetica", 20, "bold"), fg="#FF5722").pack(pady=20)
+        tk.Label(frame, text="🍎 Net-Apple", font=("Helvetica", 20, "bold"), fg="#FF5722").pack(pady=20)
 
         tk.Label(frame, text="아이디").pack(anchor="w")
         self.id_entry = tk.Entry(frame, font=("Arial", 12))

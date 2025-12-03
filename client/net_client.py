@@ -58,15 +58,20 @@ def receive_message(root_window):
                 if len(parts) < 1: continue 
                 command = parts[0]
 
-                # --- 1. START: 내 ID 할당 ---
+                # --- 1. START: 내 ID 할당 및 게임 화면 전환 ---
                 if command == "START":
                     if len(parts) < 2: continue
                     constants.MY_PLAYER_ID = int(parts[1])
                     role = "선공 (Player 1)" if constants.MY_PLAYER_ID == 0 else "후공 (Player 2)"
                     
-                    # GUI 업데이트는 메인 스레드에서 수행 (after 사용)
-                    root_window.after(0, lambda r=role: root_window.title(f"Net-Mushroom Client - Player {constants.MY_PLAYER_ID + 1} ({r})"))
                     print(f"게임 시작! 당신은 {role} 입니다.")
+                    
+                    # ★ [핵심 수정] 게임 시작 이벤트를 발생시켜 main.py가 화면을 전환하게 함
+                    # 이 이벤트가 처리되어야 gui_view의 score_label 등이 생성됨
+                    root_window.event_generate("<<GameStart>>")
+                    
+                    # 타이틀 변경 (화면 전환 후 적용되도록 약간 딜레이)
+                    root_window.after(100, lambda r=role: root_window.title(f"Net-Mushroom Client - Player {constants.MY_PLAYER_ID + 1} ({r})"))
 
                 # --- 2. BOARD: 보드 동기화 ---
                 elif command == "BOARD":
@@ -81,49 +86,54 @@ def receive_message(root_window):
                             idx += 1
                         new_board.append(row)
                     
-                    if game_model.current_game:
+                    # 게임 객체가 없으면 생성 (혹시 GameStart 이벤트보다 먼저 도착했을 경우 대비)
+                    if game_model.current_game is None:
+                        is_p1 = (constants.MY_PLAYER_ID == 0)
+                        game_model.current_game = game_model.Game(new_board, first_player_is_human=is_p1)
+                    else:
                         game_model.current_game.board = new_board
-                        root_window.after(0, draw_board)
-                        print("서버와 보드 동기화 완료!")
+                        
+                    root_window.after(0, draw_board)
+                    print("서버와 보드 동기화 완료!")
 
-                # --- 3. VALID: 정답 처리 (핵심) ---
+                # --- 3. VALID: 정답 처리 ---
                 elif command == "VALID":
                     if len(parts) < 8: continue
                     
                     who_moved = int(parts[1])
                     r1, c1, r2, c2 = map(int, parts[2:6])
-                    
-                    # 점수 파싱
                     server_score_p1 = int(parts[6])
                     server_score_p2 = int(parts[7])
 
                     is_my_move = (who_moved == constants.MY_PLAYER_ID)
                     player_type = "human" if is_my_move else "ai"
                     
-                    # 점수 업데이트 (내 ID에 따라 human/ai 점수 매핑)
-                    if constants.MY_PLAYER_ID == 0: # 내가 Player 1
+                    # 점수 업데이트
+                    if constants.MY_PLAYER_ID == 0: 
                         game_model.current_game.player_scores['human'] = server_score_p1
                         game_model.current_game.player_scores['ai'] = server_score_p2
-                    else: # 내가 Player 2
+                    else: 
                         game_model.current_game.player_scores['human'] = server_score_p2
                         game_model.current_game.player_scores['ai'] = server_score_p1
 
                     cells_to_animate = []
                     for r in range(r1, r2 + 1):
                         for c in range(c1, c2 + 1):
-                            # 숫자가 0이든 아니든 소유권 갱신을 위해 처리
                             if game_model.current_game.board[r][c] != 0:
-                                game_model.current_game.board[r][c] = 0          
+                                game_model.current_game.board[r][c] = 0
                             
                             game_model.current_game.owner_board[r][c] = player_type 
                             cells_to_animate.append((r, c))
                     
-                    # 애니메이션 실행
                     root_window.after(0, lambda cells=cells_to_animate, p=player_type: _animate_cell_fill(cells, p))
 
                 # --- 4. TURN_CHANGE: 턴 변경 ---
                 elif command == "TURN_CHANGE":
                     if len(parts) < 2: continue 
+                    
+                    # 게임 객체가 아직 생성되지 않았으면 무시 (타이밍 이슈 방지)
+                    if game_model.current_game is None: continue
+
                     next_turn_id = int(parts[1])
                     
                     if next_turn_id == constants.MY_PLAYER_ID:
@@ -136,7 +146,7 @@ def receive_message(root_window):
                     root_window.after(0, update_canvas_cursor)
                     root_window.after(0, update_score_display)
                 
-                # --- 5. INVALID: 실패 처리 ---
+                # --- 5. INVALID ---
                 elif command == "INVALID":
                      root_window.after(0, lambda: messagebox.showerror("오류", "합이 10이 아니거나 규칙을 위반했습니다. 다시 시도하세요."))
 
