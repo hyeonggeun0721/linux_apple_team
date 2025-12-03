@@ -14,6 +14,9 @@ int init_database();
 void close_database();
 int create_user(char *id, char *pw, char *nickname);
 int check_login(char *id, char *pw);
+
 // 추후 전적 저장 함수 등 추가 가능
 
+// 비밀번호 해싱 함수
+void hash_password(const char *plain_pw, char *hashed_pw);
 #endif
