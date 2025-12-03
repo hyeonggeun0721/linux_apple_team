@@ -37,6 +37,23 @@ def connect_to_server(root_window):
     except Exception as e:
         messagebox.showerror("연결 실패", f"서버 연결 실패: {e}")
 
+# 스킵 요청
+def send_pass_request():
+    if constants.CLIENT_SOCKET:
+        if game_model.current_game.current_turn != "human":
+            messagebox.showerror("알림", "당신의 차례가 아닙니다.")
+            return
+        try:
+            constants.CLIENT_SOCKET.send("PASS\n".encode('utf-8'))
+        except: pass
+
+# 항복 요청
+def send_surrender_request():
+    if constants.CLIENT_SOCKET:
+        try:
+            constants.CLIENT_SOCKET.send("SURRENDER\n".encode('utf-8'))
+        except: pass
+
 def receive_message(root_window):
     """서버로부터 메시지를 수신하고 처리하는 함수 (백그라운드 실행)"""
     buffer = ""
@@ -146,6 +163,25 @@ def receive_message(root_window):
                     root_window.after(0, update_canvas_cursor)
                     root_window.after(0, update_score_display)
                 
+                # [추가] 게임 오버 처리
+                elif command == "GAME_OVER":
+                    if len(parts) < 4: continue
+                    winner_id = int(parts[1])
+                    # s1 = int(parts[2])
+                    # s2 = int(parts[3])
+                    
+                    result_msg = "승리!" if winner_id == constants.MY_PLAYER_ID else "패배..."
+                    if winner_id == constants.MY_PLAYER_ID:
+                         msg = "상대방이 항복했습니다. 당신의 승리입니다! 🎉"
+                    else:
+                         msg = "당신이 항복했습니다. (패배) 😭"
+
+                    # 결과 알림창 띄우기 (메인 스레드)
+                    root_window.after(0, lambda m=msg: messagebox.showinfo("게임 종료", m))
+                    
+                    # ★ 홈 화면으로 복귀 이벤트 발생
+                    root_window.after(100, lambda: root_window.event_generate("<<ReturnToHome>>"))
+                    
                 # --- 5. INVALID ---
                 elif command == "INVALID":
                      root_window.after(0, lambda: messagebox.showerror("오류", "합이 10이 아니거나 규칙을 위반했습니다. 다시 시도하세요."))

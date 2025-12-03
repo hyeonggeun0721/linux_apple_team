@@ -9,6 +9,11 @@ from .gui_view import setup_gui_elements, draw_board, update_canvas_cursor, \
 from .login_view import LoginApp
 from .home_view import HomeApp # [추가]
 
+# [중요] 홈 화면 복귀 함수
+def return_to_home(event=None):
+    # 현재 소켓과 ID 정보를 유지한 채 홈 화면 재실행
+    start_home_screen(constants.CLIENT_SOCKET, f"User{constants.MY_PLAYER_ID}") # ID는 임시
+    
 # =================================================================
 # 1. 게임 화면 실행 (매칭 성공 시)
 # =================================================================
@@ -68,6 +73,26 @@ def start_game_session(event=None):
                        (human_score_label, ai_score_label), 
                        (human_info_bg_frame, ai_info_bg_frame))
 
+    # [수정] 버튼 프레임에 스킵/항복 버튼 추가
+    button_frame = tk.Frame(root, bg="white")
+    button_frame.pack(pady=10)
+
+    # 스킵 버튼
+    pass_btn = tk.Button(button_frame, text="턴 넘기기 (Skip)", 
+                         command=lambda: net_client.send_pass_request(),
+                         bg="#FFC107", width=15, height=2)
+    pass_btn.pack(side=tk.LEFT, padx=5)
+
+    # 항복 버튼 (팝업 포함)
+    def confirm_surrender():
+        if tk.messagebox.askyesno("항복", "정말 항복하고 나가시겠습니까?\n(패배로 기록됩니다)"):
+            net_client.send_surrender_request()
+
+    giveup_btn = tk.Button(button_frame, text="항복 (나가기)", 
+                           command=confirm_surrender,
+                           bg="#F44336", fg="white", width=15, height=2)
+    giveup_btn.pack(side=tk.LEFT, padx=5)
+
     # 이벤트 바인딩
     canvas.bind("<ButtonPress-1>", handle_canvas_press)
     canvas.bind("<B1-Motion>", handle_canvas_drag)
@@ -104,6 +129,9 @@ def start_home_screen(socket_obj, user_id, user_data=None):
     
     # 5. 게임 시작 이벤트 바인딩 (HomeApp에서 <<GameStart>> 발생 시 실행)
     root.bind("<<GameStart>>", start_game_session)
+
+    # [추가] 게임 종료 이벤트 바인딩 (net_client에서 발생시킴)
+    root.bind("<<ReturnToHome>>", lambda e: start_home_screen(constants.CLIENT_SOCKET, user_id, user_data))
 
 # =================================================================
 # 3. 컨트롤러 (이벤트 핸들러)
