@@ -12,6 +12,14 @@ from .home_view import HomeApp # [추가]
 # =================================================================
 # 1. 게임 화면 실행 (매칭 성공 시)
 # =================================================================
+# 중앙 배치 함수
+def center_window(window, width, height):
+    screen_width = window.winfo_screenwidth()
+    screen_height = window.winfo_screenheight()
+    x = (screen_width - width) // 2
+    y = (screen_height - height) // 2
+    window.geometry(f'{width}x{height}+{x}+{y}')
+
 def start_game_session(event=None):
     """홈 화면을 지우고 게임 화면(보드)을 띄웁니다."""
     global root, canvas
@@ -22,7 +30,8 @@ def start_game_session(event=None):
         
     # 2. 게임 화면 설정
     root.title(f"Net-Mushroom - 게임 중 ({constants.MY_PLAYER_ID})")
-    root.geometry(f"{constants.WINDOW_WIDTH}x{constants.WINDOW_HEIGHT}")
+    # [수정] 게임 화면 크기에 맞춰 중앙 배치
+    center_window(root, constants.WINDOW_WIDTH, constants.WINDOW_HEIGHT)
     root.resizable(False, False)
     root.config(bg="white")
 

@@ -6,15 +6,26 @@ import socket
 import threading
 from . import constants 
 
+# 창을 중앙으로 이동시키는 헬퍼 함수
+def center_window(window, width, height):
+    screen_width = window.winfo_screenwidth()
+    screen_height = window.winfo_screenheight()
+    x = (screen_width - width) // 2
+    y = (screen_height - height) // 2
+    window.geometry(f'{width}x{height}+{x}+{y}')
+
 class RegisterDialog(tk.Toplevel):
     """회원가입 팝업 창 (연결 유지 최적화)"""
     def __init__(self, parent):
         super().__init__(parent)
         self.title("회원가입")
-        self.geometry("400x500")
+        #self.geometry("400x500")
         self.resizable(False, False)
         self.parent = parent
         self.configure(bg="#F0F0F0")
+
+        # [수정] 중앙 배치
+        center_window(self, 400, 500)
         
         # [최적화 1] 창 열릴 때 서버 연결
         self.socket = None
@@ -93,8 +104,11 @@ class LoginApp:
         self.master = master
         self.on_login_success = on_login_success
         master.title("Net-Mushroom - 접속")
-        master.geometry("350x450")
+        #master.geometry("350x450")
         master.resizable(False, False)
+
+        # [수정] 중앙 배치
+        center_window(master, 350, 450)
         
         # [최적화 1] 앱 시작 시 서버 연결
         self.socket = None

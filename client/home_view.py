@@ -13,6 +13,14 @@ from . import constants
 # UI 컴포넌트 클래스 (팝업 등) - 디자인 유지
 # =======================================================
 
+# 중앙 배치 함수 (파일 맨 위에 추가하거나 클래스 안에 메서드로 넣어도 됨)
+def center_window(window, width, height):
+    screen_width = window.winfo_screenwidth()
+    screen_height = window.winfo_screenheight()
+    x = (screen_width - width) // 2
+    y = (screen_height - height) // 2
+    window.geometry(f'{width}x{height}+{x}+{y}')
+
 class LoadingSpinner(tk.Canvas):
     """원형 로딩 애니메이션 위젯"""
     def __init__(self, parent, size=40, bg="white"):
@@ -148,9 +156,12 @@ class HomeApp:
         self.user_data = user_data
         
         self.master.title("🍎 사과 게임 - 메인 로비")
-        self.master.geometry("900x600") # 창 크기 확대
+        #self.master.geometry("900x600") # 창 크기 확대
         self.master.resizable(False, False)
         self.master.configure(bg="#E0F7FA")
+
+        # [수정] 중앙 배치
+        center_window(self.master, 900, 600)
 
         self.friends_data = [] # 친구 목록 (dict list)
 
