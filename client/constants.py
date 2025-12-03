@@ -1,4 +1,4 @@
-# constants.py
+# client/constants.py
 NUM_ROWS = 10
 NUM_COLS = 17
 CELL_SIZE = 40

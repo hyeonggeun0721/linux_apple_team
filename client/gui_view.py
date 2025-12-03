@@ -1,4 +1,5 @@
-# gui_view.py
+# client/gui_view.py
+
 import tkinter as tk
 from . import constants
 from . import game_model 

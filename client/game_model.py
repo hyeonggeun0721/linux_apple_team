@@ -1,4 +1,5 @@
-# game_model.py
+# client/game_model.py
+
 import random
 
 current_game = None

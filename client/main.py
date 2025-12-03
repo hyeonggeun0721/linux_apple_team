@@ -1,141 +1,150 @@
+# client/main.py
+
 import tkinter as tk
-import socket
+from tkinter import messagebox
 import threading
+import socket
+
 from . import constants
 from . import game_model
 from . import net_client
 from .gui_view import setup_gui_elements, draw_board, update_canvas_cursor, \
-                       draw_selection_rectangle, clear_selection_rectangle, get_cell_coords
+                       draw_selection_rectangle, clear_selection_rectangle, get_cell_coords, update_score_display
 from .login_view import LoginApp
-from .home_view import HomeApp # [추가]
+from .home_view import HomeApp
 
-# [중요] 홈 화면 복귀 함수
-def return_to_home(event=None):
-    # 현재 소켓과 ID 정보를 유지한 채 홈 화면 재실행
-    start_home_screen(constants.CLIENT_SOCKET, f"User{constants.MY_PLAYER_ID}") # ID는 임시
-    
-# =================================================================
-# 1. 게임 화면 실행 (매칭 성공 시)
-# =================================================================
-# 중앙 배치 함수
+# UI 중앙 배치 함수
 def center_window(window, width, height):
+    window.update_idletasks()
     screen_width = window.winfo_screenwidth()
     screen_height = window.winfo_screenheight()
     x = (screen_width - width) // 2
     y = (screen_height - height) // 2
     window.geometry(f'{width}x{height}+{x}+{y}')
 
+# =================================================================
+# 1. 게임 화면 실행 (매칭 성공 시)
+# =================================================================
 def start_game_session(event=None):
-    """홈 화면을 지우고 게임 화면(보드)을 띄웁니다."""
+    """로비를 닫고 게임 화면을 띄웁니다."""
     global root, canvas
     
-    # 1. 기존 화면(홈/로그인) 위젯 제거
     for widget in root.winfo_children():
         widget.destroy()
         
-    # 2. 게임 화면 설정
-    root.title(f"Net-Mushroom - 게임 중 ({constants.MY_PLAYER_ID})")
-    # [수정] 게임 화면 크기에 맞춰 중앙 배치
+    root.title(f"Net-Mushroom - 게임 중 (Player {constants.MY_PLAYER_ID + 1})")
     center_window(root, constants.WINDOW_WIDTH, constants.WINDOW_HEIGHT)
     root.resizable(False, False)
     root.config(bg="white")
 
-    # 3. UI 구성 (기존 게임 UI 코드 복원)
+    # --- UI 구성 ---
     main_game_frame = tk.Frame(root, bg="white")
     main_game_frame.pack(pady=5)
 
+    # Player 1 (Human) Score
     human_score_frame = tk.Frame(main_game_frame, bd=0, relief="flat", bg="white")
     human_score_frame.pack(side=tk.LEFT, padx=10)
     human_info_bg_frame = tk.Frame(human_score_frame, bd=0, relief="flat")
     human_info_bg_frame.pack(fill="both", expand=True)
-    human_emoji_label = tk.Label(human_info_bg_frame, text="😊", font=("Arial", 45, "bold"))
-    human_emoji_label.pack(pady=(10,0))
-    human_name_label = tk.Label(human_info_bg_frame, text="플레이어", font=("Arial", 20, "normal"))
-    human_name_label.pack()
+    tk.Label(human_info_bg_frame, text="😊", font=("Arial", 45, "bold")).pack(pady=(10,0))
+    tk.Label(human_info_bg_frame, text="플레이어", font=("Arial", 20, "normal")).pack()
     human_score_label = tk.Label(human_score_frame, text="0", font=("Arial", 45, "bold"), bg="white")
     human_score_label.pack(pady=(0,10))
 
+    # Board Canvas
     canvas = tk.Canvas(main_game_frame, width=constants.NUM_COLS * constants.CELL_SIZE, height=constants.NUM_ROWS * constants.CELL_SIZE, bg="white", highlightthickness=0)
     canvas.pack(side=tk.LEFT, padx=10)
 
+    # Player 2 (AI) Score
     ai_score_frame = tk.Frame(main_game_frame, bd=0, relief="flat", bg="white")
     ai_score_frame.pack(side=tk.LEFT, padx=10)
     ai_info_bg_frame = tk.Frame(ai_score_frame, bd=0, relief="flat")
     ai_info_bg_frame.pack(fill="both", expand=True)
-    ai_emoji_label = tk.Label(ai_info_bg_frame, text="🤖", font=("Arial", 45, "bold"))
-    ai_emoji_label.pack(pady=(10,0))
-    ai_name_label = tk.Label(ai_info_bg_frame, text="상대방", font=("Arial", 20, "normal"))
-    ai_name_label.pack()
+    tk.Label(ai_info_bg_frame, text="🤖", font=("Arial", 45, "bold")).pack(pady=(10,0))
+    tk.Label(ai_info_bg_frame, text="상대방", font=("Arial", 20, "normal")).pack()
     ai_score_label = tk.Label(ai_score_frame, text="0", font=("Arial", 45, "bold"), bg="white")
     ai_score_label.pack(pady=(0,10))
 
+    # 뷰 모듈 연결
     setup_gui_elements(root, canvas, 
                        (human_score_label, ai_score_label), 
                        (human_info_bg_frame, ai_info_bg_frame))
 
-    # [수정] 버튼 프레임에 스킵/항복 버튼 추가
+    # 버튼 생성
     button_frame = tk.Frame(root, bg="white")
     button_frame.pack(pady=10)
 
-    # 스킵 버튼
-    pass_btn = tk.Button(button_frame, text="턴 넘기기 (Skip)", 
-                         command=lambda: net_client.send_pass_request(),
+    pass_button = tk.Button(button_frame, text="턴 넘기기 (Skip)", 
+                         command=handle_pass_button, 
                          bg="#FFC107", width=15, height=2)
-    pass_btn.pack(side=tk.LEFT, padx=5)
-
-    # 항복 버튼 (팝업 포함)
-    def confirm_surrender():
-        if tk.messagebox.askyesno("항복", "정말 항복하고 나가시겠습니까?\n(패배로 기록됩니다)"):
-            net_client.send_surrender_request()
+    pass_button.pack(side=tk.LEFT, padx=5)
 
     giveup_btn = tk.Button(button_frame, text="항복 (나가기)", 
-                           command=confirm_surrender,
-                           bg="#F44336", fg="white", width=15, height=2)
+                       command=confirm_surrender, 
+                       bg="#F44336", fg="white", width=15, height=2)
     giveup_btn.pack(side=tk.LEFT, padx=5)
 
-    # 이벤트 바인딩
+    # ★ [핵심 수정] 이벤트 바인딩 (Enter, Leave 추가)
     canvas.bind("<ButtonPress-1>", handle_canvas_press)
     canvas.bind("<B1-Motion>", handle_canvas_drag)
     canvas.bind("<ButtonRelease-1>", handle_canvas_release)
+    canvas.bind("<Enter>", handle_canvas_enter)  # 마우스 들어올 때
+    canvas.bind("<Leave>", handle_canvas_leave)  # 마우스 나갈 때
     
-    # 게임 데이터 초기화 및 수신 대기
-    # (주의: 이미 net_client.receive_message 스레드가 돌고 있으므로 여기서 또 켤 필요는 없음
-    #  단, login_view에서 만든 임시 스레드는 종료되었을 수 있으니 확인 필요)
-    #  -> 여기서는 net_client가 소켓을 계속 물고 있다고 가정
-    
+    # 게임 객체 초기화
     game_model.current_game = game_model.Game(game_model.initialize_board_data())
-    # 서버로부터 START, BOARD 메시지가 오면 화면이 갱신됨
 
-# =================================================================
-# 2. 홈 화면 실행 (로그인 성공 시 호출)
-# =================================================================
 def start_home_screen(socket_obj, user_id, user_data=None):
-    """로그인 창 닫고 홈 화면 띄우기"""
+    """홈 화면(로비) 띄우기"""
     if user_data is None: user_data = {}
-
-    # 1. 위젯 정리
     for widget in root.winfo_children():
         widget.destroy()
 
-    # 2. 소켓 전역 저장
     constants.CLIENT_SOCKET = socket_obj
     
-    # 3. [중요] 서버 메시지 수신 스레드 시작 (여기서부터 net_client가 통신 담당)
-    recv_thread = threading.Thread(target=lambda: net_client.receive_message(root), daemon=True)
-    recv_thread.start()
+    if not getattr(constants, 'RECV_THREAD_STARTED', False):
+        constants.RECV_THREAD_STARTED = True
+        recv_thread = threading.Thread(target=lambda: net_client.receive_message(root), daemon=True)
+        recv_thread.start()
 
-    # 4. 홈 화면 생성
     home = HomeApp(root, user_id, user_data)
+    center_window(root, 900, 600)
     
-    # 5. 게임 시작 이벤트 바인딩 (HomeApp에서 <<GameStart>> 발생 시 실행)
     root.bind("<<GameStart>>", start_game_session)
-
-    # [추가] 게임 종료 이벤트 바인딩 (net_client에서 발생시킴)
     root.bind("<<ReturnToHome>>", lambda e: start_home_screen(constants.CLIENT_SOCKET, user_id, user_data))
 
 # =================================================================
-# 3. 컨트롤러 (이벤트 핸들러)
+# 2. 이벤트 핸들러 (CONTROLLER)
 # =================================================================
+
+# ★ [추가] 마우스가 캔버스에 들어올 때
+def handle_canvas_enter(event):
+    update_canvas_cursor() # 내 턴이면 십자가, 아니면 화살표로 설정
+
+# ★ [추가] 마우스가 캔버스 밖으로 나갈 때 (버튼 누르러 갈 때)
+def handle_canvas_leave(event):
+    if canvas:
+        canvas.config(cursor="arrow") # 무조건 화살표로 변경
+    
+    # 드래그 중이었다면 취소 (이게 없으면 버튼 클릭이 드래그로 인식될 수 있음)
+    if game_model.start_x != -1:
+        game_model.start_x = -1
+        game_model.start_y = -1
+        clear_selection_rectangle()
+
+def handle_pass_button():
+    if game_model.current_game and game_model.current_game.current_turn == "human":
+        net_client.send_pass_request()
+    else:
+        tk.messagebox.showerror("턴 오류", "현재 당신의 차례가 아닙니다.")
+
+def confirm_surrender():
+    if not constants.CLIENT_SOCKET:
+        tk.messagebox.showerror("오류", "서버와 연결된 상태가 아닙니다.")
+        return
+    if tk.messagebox.askyesno("항복", "정말 항복하고 나가시겠습니까?\n(패배로 기록됩니다)"):
+        net_client.send_surrender_request()
+
 def handle_canvas_release(event):
     r1, c1 = get_cell_coords(game_model.start_x, game_model.start_y)
     r2, c2 = get_cell_coords(event.x, event.y)
@@ -163,10 +172,9 @@ def handle_canvas_drag(event):
     draw_selection_rectangle(game_model.start_x, game_model.start_y, end_x, end_y, color)
 
 # =================================================================
-# 4. 메인 실행
+# 3. 메인 실행
 # =================================================================
 if __name__ == "__main__":
     root = tk.Tk()
-    # 로그인 앱 실행 (성공 시 start_home_screen 호출)
     app = LoginApp(root, on_login_success=start_home_screen)
     root.mainloop()

@@ -13,19 +13,17 @@
 // 게임 중인 플레이어의 소켓 번호 (매칭된 2명)
 int player_fds[2] = {0, 0}; 
 
-// 게임 상태 리셋 (종료 시 호출)
+// 게임 상태 리셋
 void reset_game_state() {
-    // 점수 및 보드 초기화
     scores[0] = 0;
     scores[1] = 0;
     init_board(); 
     
-    // 플레이어 자리 비우기 (중요: 그래야 다음 매칭 가능)
     player_fds[0] = 0;
     player_fds[1] = 0;
     current_turn = 0;
     
-    // 전역 변수(broadcast용)도 초기화
+    // broadcast용 변수 초기화
     client_fds[0] = 0;
     client_fds[1] = 0;
     
@@ -39,32 +37,32 @@ int main() {
     init_board();
     init_server(); 
     
-    // 접속한 모든 클라이언트 소켓을 저장하는 배열
+    // 접속한 모든 클라이언트 소켓 관리
     int all_clients[MAX_CLIENTS] = {0}; 
     
     printf("Server started. Waiting for connections...\n");
 
-    // 2. 메인 루프 (무한 반복)
+    // 2. 메인 루프
     while (1) {
         fd_set read_fds;
         FD_ZERO(&read_fds);
         
-        // (A) 서버 소켓(신규 접속) 감시 등록
+        // (A) 서버 소켓(신규 접속) 감시
         FD_SET(server_fd, &read_fds);
         int max_fd = server_fd;
 
-        // (B) 연결된 모든 클라이언트 감시 등록
+        // (B) ★ [수정] 현재 턴과 상관없이 '모든' 클라이언트 감시 ★
         for (int i = 0; i < MAX_CLIENTS; i++) {
             int sd = all_clients[i];
             if (sd > 0) FD_SET(sd, &read_fds);
             if (sd > max_fd) max_fd = sd;
         }
 
-        // (C) 입력 대기 (Select)
+        // (C) 입력 대기
         int activity = select(max_fd + 1, &read_fds, NULL, NULL, NULL);
         if ((activity < 0)) continue;
 
-        // [1] 새로운 접속 처리 (Accept)
+        // [1] 새로운 접속 처리
         if (FD_ISSET(server_fd, &read_fds)) {
             struct sockaddr_in address;
             int addrlen = sizeof(address);
@@ -72,7 +70,6 @@ int main() {
             
             if (new_socket >= 0) {
                 printf("[INFO] New connection: fd=%d\n", new_socket);
-                // 빈 자리에 저장
                 for (int i = 0; i < MAX_CLIENTS; i++) {
                     if (all_clients[i] == 0) {
                         all_clients[i] = new_socket;
@@ -82,7 +79,7 @@ int main() {
             }
         }
 
-        // [2] 기존 클라이언트들의 요청 처리
+        // [2] 기존 클라이언트 요청 처리
         for (int i = 0; i < MAX_CLIENTS; i++) {
             int sd = all_clients[i];
             
@@ -97,9 +94,8 @@ int main() {
                     close(sd);
                     all_clients[i] = 0;
                     
-                    // 게임 중이던 플레이어가 나가면 게임 리셋
                     if (sd == player_fds[0] || sd == player_fds[1]) {
-                        int winner = (sd == player_fds[0]) ? 1 : 0; // 남은 사람이 승리
+                        int winner = (sd == player_fds[0]) ? 1 : 0; 
                         char over[100];
                         sprintf(over, "GAME_OVER %d %d %d\n", winner, scores[0], scores[1]);
                         
@@ -134,7 +130,6 @@ int main() {
                     // [매칭 대기열] REQ_QUEUE
                     // -------------------------------------------------
                     else if (strcmp(cmd, "REQ_QUEUE") == 0) {
-                        // 이미 게임 중이면 무시
                         if (sd == player_fds[0] || sd == player_fds[1]) continue;
 
                         if (player_fds[0] == 0) {
@@ -144,19 +139,16 @@ int main() {
                             player_fds[1] = sd;
                             printf("[GAME] P2 joined (fd=%d). Game Start!\n", sd);
                             
-                            // 1. 게임 시작 신호
+                            // 게임 시작 시퀀스
                             char msg[50];
                             sprintf(msg, "START 0\n"); write(player_fds[0], msg, strlen(msg));
                             sprintf(msg, "START 1\n"); write(player_fds[1], msg, strlen(msg));
                             
-                            // 2. 전역 변수 업데이트 (network.c의 client_fds 등)
                             client_fds[0] = player_fds[0];
                             client_fds[1] = player_fds[1];
                             
-                            // 3. 보드 전송
-                            send_board_data();
+                            send_board_data(); 
                             
-                            // 4. 첫 턴 알림
                             char turn[50];
                             sprintf(turn, "TURN_CHANGE %d\n", current_turn);
                             broadcast(turn);
@@ -164,7 +156,7 @@ int main() {
                     }
 
                     // -------------------------------------------------
-                    // [항복] SURRENDER (누구나 가능)
+                    // [항복] SURRENDER (누구나 가능, 턴 체크 X)
                     // -------------------------------------------------
                     else if (strcmp(cmd, "SURRENDER") == 0) {
                          if (sd == player_fds[0] || sd == player_fds[1]) {
@@ -184,8 +176,7 @@ int main() {
                     // -------------------------------------------------
                     else if (strcmp(cmd, "PASS") == 0) {
                         int pid = -1;
-                        if (sd == player_fds[0]) pid = 0;
-                        else if (sd == player_fds[1]) pid = 1;
+                        if (sd == player_fds[0]) pid = 0; else if (sd == player_fds[1]) pid = 1;
 
                         if (pid != -1 && pid == current_turn) {
                             printf("[GAME] Player %d passed turn.\n", pid + 1);
@@ -202,15 +193,14 @@ int main() {
                     // -------------------------------------------------
                     else if (strcmp(cmd, "MOVE") == 0) {
                         int pid = -1;
-                        if (sd == player_fds[0]) pid = 0;
-                        else if (sd == player_fds[1]) pid = 1;
+                        if (sd == player_fds[0]) pid = 0; else if (sd == player_fds[1]) pid = 1;
 
+                        // ★ [중요] 여기서 턴을 체크함 (select에서 막지 않음)
                         if (pid != -1 && pid == current_turn) {
                             int r1, c1, r2, c2;
                             sscanf(buffer, "%*s %d %d %d %d", &r1, &c1, &r2, &c2);
                             
                             if (isValid(r1, c1, r2, c2)) {
-                                // 점수 계산 (칸 수 + 뺏기)
                                 int cells_count = 0;
                                 int other_pid = (pid + 1) % 2;
                                 for(int r=r1; r<=r2; r++) {
