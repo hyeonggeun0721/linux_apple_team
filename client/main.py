@@ -1,5 +1,5 @@
 # client/main.py
-#시발 고친거임 22
+
 import tkinter as tk
 from tkinter import messagebox
 import threading
