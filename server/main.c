@@ -145,8 +145,11 @@ int check_valid_move(GameSession *s, int r1, int c1, int r2, int c2) {
             if (s->board[r][c] != 0) {
                 sum += s->board[r][c];
                 has_non_zero = 1;
-                if (r == r1) r1_h = 1; if (r == r2) r2_h = 1;
-                if (c == c1) c1_h = 1; if (c == c2) c2_h = 1;
+                if (r == r1) r1_h = 1;
+                if (r == r2) r2_h = 1;
+                
+                if (c == c1) c1_h = 1;
+                if (c == c2) c2_h = 1;
             }
         }
     }
