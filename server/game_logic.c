@@ -8,7 +8,6 @@
 int board[ROWS][COLS];
 int scores[2] = {0, 0};
 int current_turn = 0;
-// [추가] 소유권 배열 정의
 int owner_board[ROWS][COLS];
 
 void init_board() {
@@ -16,7 +15,7 @@ void init_board() {
     for(int i=0; i<ROWS; i++) {
         for(int j=0; j<COLS; j++) {
             board[i][j] = (rand() % 9) + 1;
-            owner_board[i][j] = -1; // [추가] 초기에는 주인 없음 (-1)
+            owner_board[i][j] = -1; 
         }
     }
 }
@@ -36,22 +35,19 @@ void send_board_data() {
 }
 
 int isValid(int r1, int c1, int r2, int c2) {
-    // 1. 범위 검사
     if (r1 < 0 || r1 >= ROWS || r2 < 0 || r2 >= ROWS || 
         c1 < 0 || c1 >= COLS || c2 < 0 || c2 >= COLS) return 0;
 
     int sum = 0;
     int r1_h = 0, r2_h = 0, c1_h = 0, c2_h = 0;
-    int all_z = 1;
+    int has_non_zero = 0; // [수정] 변수명 통일 및 로직 강화
 
-    // 2. 영역 순회
     for (int r = r1; r <= r2; r++) {
         for (int c = c1; c <= c2; c++) {
             if (board[r][c] != 0) {
-                all_z = 0; 
                 sum += board[r][c];
+                has_non_zero = 1;
                 
-                // [수정] 경고가 뜨던 부분을 명확하게 줄 바꿈 처리
                 if (r == r1) r1_h = 1; 
                 if (r == r2) r2_h = 1;
                 if (c == c1) c1_h = 1; 
@@ -60,11 +56,7 @@ int isValid(int r1, int c1, int r2, int c2) {
         }
     }
 
-    if (all_z) return 0;
-
-    // 3. 조건 검사 (합 10 & 네 변 포함)
-    if (sum == 10 && r1_h && r2_h && c1_h && c2_h) {
-        // 정답이면 보드 0으로 지우기
+    if (sum == 10 && has_non_zero && r1_h && r2_h && c1_h && c2_h) {
         for (int r = r1; r <= r2; r++) {
             for (int c = c1; c <= c2; c++) {
                 board[r][c] = 0;

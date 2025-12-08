@@ -9,14 +9,20 @@
 // 전역 DB 객체 (필요시)
 extern sqlite3 *db;
 
-// 함수 원형
+// 기본 함수
 int init_database();
 void close_database();
 int create_user(char *id, char *pw, char *nickname);
 int check_login(char *id, char *pw);
-
-// 추후 전적 저장 함수 등 추가 가능
-
-// 비밀번호 해싱 함수
 void hash_password(const char *plain_pw, char *hashed_pw);
+
+// 전적 및 랭크 시스템 함수
+int save_game_result(char *winner_id, char *loser_id, int score_w, int score_l);
+char* get_user_history(char *user_id);
+
+// 랭크 계산 및 조회
+int process_ranked_result(char *winner_id, char *loser_id);
+int get_user_mmr(char *user_id);
+const char* calculate_tier(int mmr);
+
 #endif

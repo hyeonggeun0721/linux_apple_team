@@ -14,12 +14,25 @@ current_rect_id = None
 animation_queue = []
 animation_target_color = ""
 
-def setup_gui_elements(root_ref, canvas_ref, score_labels, info_frames):
-    global root, canvas, human_score_label, ai_score_label, human_info_bg_frame, ai_info_bg_frame
+# [수정] Text 위젯 대신 ChatPanel 객체를 저장
+chat_panel = None
+
+def setup_gui_elements(root_ref, canvas_ref, score_labels, info_frames, chat_panel_ref):
+    global root, canvas, human_score_label, ai_score_label, human_info_bg_frame, ai_info_bg_frame, chat_panel
     root = root_ref
     canvas = canvas_ref
     human_score_label, ai_score_label = score_labels
     human_info_bg_frame, ai_info_bg_frame = info_frames
+    
+    # [수정] 전달받은 ChatPanel 객체 저장
+    chat_panel = chat_panel_ref
+
+def append_chat_message(sender, message):
+    """ChatPanel의 add_message 메서드 호출"""
+    if chat_panel:
+        chat_panel.add_message(sender, message)
+
+# --- 이하 기존 게임 렌더링 함수들 (유지) ---
 
 def get_cell_coords(event_x, event_y):
     r = event_y // constants.CELL_SIZE
