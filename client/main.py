@@ -180,7 +180,7 @@ def handle_canvas_drag(event):
     r2, c2 = get_cell_coords(end_x, end_y)
     color = "red"
     if game_model.current_game.isValid(min(r1,r2), min(c1,c2), max(r1,r2), max(c1,c2)):
-        color = "#4CAF50"
+        color = "light green"
     draw_selection_rectangle(game_model.start_x, game_model.start_y, end_x, end_y, color)
 
 # =================================================================

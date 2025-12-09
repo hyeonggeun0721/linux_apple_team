@@ -102,7 +102,7 @@ def set_info_frame_colors(info_frame, color):
 def draw_selection_rectangle(x1, y1, x2, y2, color="black"):
     global current_rect_id
     if current_rect_id: canvas.delete(current_rect_id)
-    current_rect_id = canvas.create_rectangle(x1, y1, x2, y2, outline=color, width=3, dash=(7, 7))
+    current_rect_id = canvas.create_rectangle(x1, y1, x2, y2, outline=color, width=2, dash=(7, 7))
 
 def clear_selection_rectangle():
     global current_rect_id

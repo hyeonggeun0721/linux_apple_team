@@ -88,10 +88,21 @@ class HomeApp:
     def request_match(self):
         if constants.CLIENT_SOCKET:
             try:
+                # 1. 서버 전송 시도
                 constants.CLIENT_SOCKET.send("REQ_QUEUE\n".encode('utf-8'))
+                
+                # 2. 다이얼로그 띄우기 (여기서 에러나면 서버 문제가 아님)
                 self.matching_dialog = MatchingDialog(self.master, self.cancel_match)
-            except:
+
+            except OSError as e:
+                # 진짜 소켓/연결 관련 에러인 경우에만 실행
+                print(f"[Network Error] {e}") 
                 messagebox.showerror("오류", "서버 연결 끊김")
+                
+            except Exception as e:
+                # 그 외 파이썬 코드 에러 (MatchingDialog 내부 오류 등)
+                print(f"[Logic Error] {e}") 
+                # 여기서 터미널을 보면 'NameError'나 'AttributeError'가 떠 있을 확률이 높습니다.
 
     def cancel_match(self):
         net_client.send_cancel_queue_request()
