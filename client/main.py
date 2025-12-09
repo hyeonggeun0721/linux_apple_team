@@ -39,7 +39,7 @@ def start_game_session(event=None):
 
     root.bind("<Motion>", track_mouse_cursor)
 
-    # 1. 메인 컨테이너 (좌/우 분할)
+    # 1. 메인 컨테이너
     main_container = tk.Frame(root, bg="white")
     main_container.pack(fill="both", expand=True, padx=10, pady=10)
 
@@ -50,37 +50,58 @@ def start_game_session(event=None):
     left_container.pack(side=tk.LEFT, fill="both", expand=True)
 
     # A. 게임 보드와 점수판이 들어갈 상단 프레임
+    # fill="both", expand=True를 주어 높이를 최대한 확보합니다.
     board_score_frame = tk.Frame(left_container, bg="white")
-    board_score_frame.pack(side=tk.TOP, pady=(0, 10))
+    board_score_frame.pack(side=tk.TOP, fill="both", expand=True, pady=(0, 10))
 
-    # P1 점수
-    human_score_frame = tk.Frame(board_score_frame, bg="white", width=constants.SCOREBOARD_WIDTH)
-    human_score_frame.pack(side=tk.LEFT, padx=5)
+    # [수정 1] P1 점수 영역 (나) - 세로 꽉 채우기
+    human_score_frame = tk.Frame(board_score_frame, bg="white")
+    # fill="both"로 세로 길이를 부모(보드 높이)만큼 늘립니다.
+    human_score_frame.pack(side=tk.LEFT, expand=True, fill="both")
     
     human_bg = tk.Frame(human_score_frame, bg="white")
-    human_bg.pack(fill="both")
+    human_bg.pack(fill="both", expand=True) 
+
+    # ★ 내용을 수직 중앙에 두기 위한 투명 스페이서 (위쪽)
+    tk.Label(human_bg, text="", bg="white").pack(fill="both", expand=True)
+
+    # 내용물 (이모티콘, 이름, 점수)
     tk.Label(human_bg, text="🍎", font=("Arial", 45), bg="white").pack()
     tk.Label(human_bg, text="나", font=("Arial", 25, "bold"), bg="white").pack()
-    human_score_label = tk.Label(human_score_frame, text="0", font=("Arial", 25, "bold"), bg="white")
+    human_score_label = tk.Label(human_bg, text="0", font=("Arial", 25, "bold"), bg="white")
     human_score_label.pack(pady=5)
 
-    # 게임 보드 (Canvas)
+    # ★ 내용을 수직 중앙에 두기 위한 투명 스페이서 (아래쪽)
+    tk.Label(human_bg, text="", bg="white").pack(fill="both", expand=True)
+
+
+    # [수정 2] 게임 보드 (Canvas)
     canvas = tk.Canvas(board_score_frame, 
                        width=constants.NUM_COLS * constants.CELL_SIZE, 
                        height=constants.NUM_ROWS * constants.CELL_SIZE, 
                        bg="white", highlightthickness=2, highlightbackground="#eee")
     canvas.pack(side=tk.LEFT, padx=5)
 
-    # P2 점수
-    ai_score_frame = tk.Frame(board_score_frame, bg="white", width=constants.SCOREBOARD_WIDTH)
-    ai_score_frame.pack(side=tk.LEFT, padx=5)
+
+    # [수정 3] P2 점수 영역 (상대) - 세로 꽉 채우기
+    ai_score_frame = tk.Frame(board_score_frame, bg="white")
+    ai_score_frame.pack(side=tk.LEFT, expand=True, fill="both")
     
     ai_bg = tk.Frame(ai_score_frame, bg="white")
-    ai_bg.pack(fill="both")
+    ai_bg.pack(fill="both", expand=True)
+
+    # ★ 위쪽 스페이서
+    tk.Label(ai_bg, text="", bg="white").pack(fill="both", expand=True)
+
+    # 내용물
     tk.Label(ai_bg, text="🍏", font=("Arial", 45), bg="white").pack()
     tk.Label(ai_bg, text="상대", font=("Arial", 25, "bold"), bg="white").pack()
-    ai_score_label = tk.Label(ai_score_frame, text="0", font=("Arial", 25, "bold"), bg="white")
+    ai_score_label = tk.Label(ai_bg, text="0", font=("Arial", 25, "bold"), bg="white")
     ai_score_label.pack(pady=5)
+
+    # ★ 아래쪽 스페이서
+    tk.Label(ai_bg, text="", bg="white").pack(fill="both", expand=True)
+
 
     # B. 버튼 영역
     button_frame = tk.Frame(left_container, bg="white")
@@ -99,17 +120,16 @@ def start_game_session(event=None):
     giveup_btn.pack(side=tk.LEFT, padx=20)
 
     # ---------------------------------------------------------
-    # [우측] 채팅 영역 (ChatPanel 사용)
+    # [우측] 채팅 영역
     # ---------------------------------------------------------
-    # 기존 tk.Text 생성 코드를 제거하고 ChatPanel 인스턴스 생성
     chat_panel = ChatPanel(main_container, width=constants.CHAT_WIDTH, height=constants.WINDOW_HEIGHT)
     chat_panel.pack(side=tk.RIGHT, fill="y", padx=(10, 0))
 
-    # GUI 요소 연결 (ChatPanel 객체 전달)
+    # GUI 요소 연결
     setup_gui_elements(root, canvas, 
                        (human_score_label, ai_score_label), 
                        (human_bg, ai_bg),
-                       chat_panel) # <--- 수정됨
+                       chat_panel)
 
     # 이벤트 바인딩
     canvas.bind("<ButtonPress-1>", handle_canvas_press)
