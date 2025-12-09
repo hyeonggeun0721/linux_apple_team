@@ -59,7 +59,7 @@ def start_game_session(event=None):
     
     human_bg = tk.Frame(human_score_frame, bg="white")
     human_bg.pack(fill="both")
-    tk.Label(human_bg, text="😊", font=("Arial", 35), bg="white").pack()
+    tk.Label(human_bg, text="🍎", font=("Arial", 35), bg="white").pack()
     tk.Label(human_bg, text="나", font=("Arial", 25, "bold"), bg="white").pack()
     human_score_label = tk.Label(human_score_frame, text="0", font=("Arial", 25, "bold"), bg="white")
     human_score_label.pack(pady=5)
@@ -77,7 +77,7 @@ def start_game_session(event=None):
     
     ai_bg = tk.Frame(ai_score_frame, bg="white")
     ai_bg.pack(fill="both")
-    tk.Label(ai_bg, text="🤖", font=("Arial", 35), bg="white").pack()
+    tk.Label(ai_bg, text="🍏", font=("Arial", 35), bg="white").pack()
     tk.Label(ai_bg, text="상대", font=("Arial", 25, "bold"), bg="white").pack()
     ai_score_label = tk.Label(ai_score_frame, text="0", font=("Arial", 25, "bold"), bg="white")
     ai_score_label.pack(pady=5)
@@ -192,7 +192,7 @@ def start_home_screen(socket_obj, user_id, user_data=None):
 
     constants.CLIENT_SOCKET = socket_obj
     if not getattr(constants, 'RECV_THREAD_STARTED', False):
-        constants.RECV_THREAD_STARTED = True
+        constants.RECV_THREAD_STARTED = True 
         recv_thread = threading.Thread(target=lambda: net_client.receive_message(root), daemon=True)
         recv_thread.start()
 

@@ -33,7 +33,7 @@ class HomeApp:
         # [핵심 추가] 현재 홈 화면 인스턴스를 전역 변수에 등록 (외부 접근용)
         constants.CURRENT_HOME_INSTANCE = self
         
-        self.master.title("Net-Mushroom - 로비")
+        self.master.title("Net-Apple - 로비")
         self.master.resizable(False, False)
         self.master.configure(bg="#E0F7FA")
         
@@ -91,7 +91,7 @@ class HomeApp:
                 constants.CLIENT_SOCKET.send("REQ_QUEUE\n".encode('utf-8'))
                 self.matching_dialog = MatchingDialog(self.master, self.cancel_match)
             except:
-                messagebox.showerror("오류", "서버 연결 끊김?")
+                messagebox.showerror("오류", "서버 연결 끊김")
 
     def cancel_match(self):
         net_client.send_cancel_queue_request()
