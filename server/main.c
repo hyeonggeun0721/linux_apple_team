@@ -157,6 +157,22 @@ int check_valid_move(GameSession *s, int r1, int c1, int r2, int c2) {
     return 0;
 }
 
+// ★ [추가] 현재 세션에서 더 이상 가능한 수가 있는지 전수조사
+int check_any_possible_move(GameSession *s) {
+    for (int r1 = 0; r1 < BOARD_ROWS; r1++) {
+        for (int c1 = 0; c1 < BOARD_COLS; c1++) {
+            for (int r2 = r1; r2 < BOARD_ROWS; r2++) {
+                for (int c2 = c1; c2 < BOARD_COLS; c2++) {
+                    if (check_valid_move(s, r1, c1, r2, c2)) {
+                        return 1; // 가능한 수 발견
+                    }
+                }
+            }
+        }
+    }
+    return 0; // 더 이상 가능한 수 없음
+}
+
 void end_session(int s_idx, int winner_idx_in_session) {
     if (s_idx < 0 || s_idx >= MAX_SESSIONS) return;
     GameSession *s = &sessions[s_idx];
@@ -171,7 +187,7 @@ void end_session(int s_idx, int winner_idx_in_session) {
     // 1. 전적 저장
     save_game_result(w_id, l_id, w_score, l_score);
 
-    // 2. 랭크 및 티어 업데이트 (0점 기준 로직 적용됨)
+    // 2. 랭크 및 티어 업데이트
     process_ranked_result(w_id, l_id);
     
     char over[100];
@@ -281,7 +297,6 @@ int main() {
                             }
                             write(sd, packet, strlen(packet));
                         }
-                        // [추가] 정보 갱신 요청 처리
                         else if (strcmp(cmd, "REQ_REFRESH") == 0) {
                             char *my_id = get_client_id(sd);
                             int current_mmr = get_user_mmr(my_id);
@@ -351,6 +366,21 @@ int main() {
                                         s->scores[pid] += cells_count;
                                         char res[100]; sprintf(res, "VALID %d %d %d %d %d %d %d\n", pid, r1, c1, r2, c2, s->scores[0], s->scores[1]);
                                         write(s->p1_fd, res, strlen(res)); write(s->p2_fd, res, strlen(res));
+
+                                        // ★ [수정됨] 세션 기반으로 판독 로직 추가
+                                        if (check_any_possible_move(s) == 0) {
+                                            printf("[GAME] Session %d: No more moves. Game Over.\n", s_idx);
+                                            
+                                            // 승자 판별 (점수가 높거나 같으면 P1 승리, 필요시 무승부 로직 추가 가능)
+                                            int winner = (s->scores[0] >= s->scores[1]) ? 0 : 1;
+                                            
+                                            // end_session이 이미 broadcast와 DB저장 등을 처리함
+                                            end_session(s_idx, winner);
+                                            
+                                            // 여기서 continue하면 아래의 TURN_CHANGE를 보내지 않고 다음 루프로 감
+                                            continue; 
+                                        }
+
                                         s->current_turn = other_pid;
                                         char turn[50]; sprintf(turn, "TURN_CHANGE %d\n", s->current_turn);
                                         write(s->p1_fd, turn, strlen(turn)); write(s->p2_fd, turn, strlen(turn));
