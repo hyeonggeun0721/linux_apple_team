@@ -118,21 +118,47 @@ def update_canvas_cursor():
         canvas.config(cursor="arrow")
 
 def _animate_cell_fill(cells, player_type):
-    global animation_queue, animation_target_color
+    """애니메이션 시작 함수"""
+    global animation_queue, animation_target_emoji
+    
     animation_queue = list(cells)
-    # 애니메이션 효과: 사과가 생기기 직전에 살짝 배경색이 들어오는 효과
-    animation_target_color = "lightblue" if player_type == "human" else "lightcoral"
+    
+    # 플레이어에 따라 사과 종류 결정
+    if player_type == "human":
+        animation_target_emoji = "🍎"
+    else:
+        animation_target_emoji = "🍏"
+        
     update_score_display()
     _animate_next_cell()
 
 def _animate_next_cell():
-    global animation_queue, animation_target_color
+    """한 칸씩 순서대로 사과를 그리는 함수"""
+    global animation_queue, animation_target_emoji
+    
     if animation_queue:
         r, c = animation_queue.pop(0)
         x1, y1 = c * constants.CELL_SIZE, r * constants.CELL_SIZE
         x2, y2 = x1 + constants.CELL_SIZE, y1 + constants.CELL_SIZE
         
-        canvas.create_rectangle(x1, y1, x2, y2, outline="gray", width=1, fill=animation_target_color)
+        center_x = x1 + constants.CELL_SIZE / 2
+        center_y = y1 + constants.CELL_SIZE / 2
+        
+        # 폰트 크기 설정 (draw_board와 동일하게)
+        emoji_size = int(constants.CELL_SIZE * 0.75)
+        font_family = "Apple Color Emoji" if 'darwin' in sys.platform else "Segoe UI Emoji"
+        
+        # 1. 먼저 흰색 박스를 그려서 기존의 '숫자'를 지웁니다.
+        canvas.create_rectangle(x1, y1, x2, y2, outline="gray", width=1, fill="white")
+        
+        # 2. 그 위에 사과 이모티콘을 그립니다.
+        canvas.create_text(center_x, center_y, 
+                           text=animation_target_emoji, 
+                           font=(font_family, emoji_size),
+                           anchor="center")
+        
+        # 3. 다음 칸 애니메이션 예약 (속도 조절: 50ms -> 필요하면 숫자 조정)
         root.after(50, _animate_next_cell)
     else:
+        # 애니메이션이 다 끝나면 최종적으로 보드를 다시 그려서 상태 확정
         draw_board()

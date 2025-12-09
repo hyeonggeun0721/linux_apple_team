@@ -59,7 +59,7 @@ def start_game_session(event=None):
     
     human_bg = tk.Frame(human_score_frame, bg="white")
     human_bg.pack(fill="both")
-    tk.Label(human_bg, text="🍎", font=("Arial", 35), bg="white").pack()
+    tk.Label(human_bg, text="🍎", font=("Arial", 45), bg="white").pack()
     tk.Label(human_bg, text="나", font=("Arial", 25, "bold"), bg="white").pack()
     human_score_label = tk.Label(human_score_frame, text="0", font=("Arial", 25, "bold"), bg="white")
     human_score_label.pack(pady=5)
@@ -77,7 +77,7 @@ def start_game_session(event=None):
     
     ai_bg = tk.Frame(ai_score_frame, bg="white")
     ai_bg.pack(fill="both")
-    tk.Label(ai_bg, text="🍏", font=("Arial", 35), bg="white").pack()
+    tk.Label(ai_bg, text="🍏", font=("Arial", 45), bg="white").pack()
     tk.Label(ai_bg, text="상대", font=("Arial", 25, "bold"), bg="white").pack()
     ai_score_label = tk.Label(ai_score_frame, text="0", font=("Arial", 25, "bold"), bg="white")
     ai_score_label.pack(pady=5)
@@ -87,14 +87,14 @@ def start_game_session(event=None):
     button_frame.pack(side=tk.TOP, pady=10)
 
     pass_button = tk.Button(button_frame, text="턴 넘기기 (PASS)", 
-                         command=handle_pass_button, 
-                         bg="#FFB74D", fg="white", font=("Arial", 12, "bold"), 
-                         width=16, height=2, relief="flat")
+                        command=handle_pass_button, 
+                        bg="#FFC107", fg="black", font=("Arial", 12, "bold"), 
+                        width=16, height=2, relief="flat")
     pass_button.pack(side=tk.LEFT, padx=20)
 
     giveup_btn = tk.Button(button_frame, text="항복 (GG)", 
                        command=confirm_surrender, 
-                       bg="#E57373", fg="white", font=("Arial", 12, "bold"), 
+                       bg="#FFC107", fg="black", font=("Arial", 12, "bold"), 
                        width=12, height=2, relief="flat")
     giveup_btn.pack(side=tk.LEFT, padx=20)
 
