@@ -12,7 +12,7 @@ class ChatPanel(tk.Frame):
         log_frame = tk.Frame(self, bg=bg_color)
         log_frame.pack(side=tk.TOP, fill="both", expand=True, padx=5, pady=5)
 
-        self.log_area = tk.Text(log_frame, state=tk.DISABLED, font=("Arial", 9), 
+        self.log_area = tk.Text(log_frame, state=tk.DISABLED, font=("Arial", 15), 
                                 bg="white", relief="flat", padx=5, pady=5)
         self.scrollbar = tk.Scrollbar(log_frame, command=self.log_area.yview)
         self.log_area.configure(yscrollcommand=self.scrollbar.set)
@@ -20,19 +20,19 @@ class ChatPanel(tk.Frame):
         self.scrollbar.pack(side=tk.RIGHT, fill="y")
         self.log_area.pack(side=tk.LEFT, fill="both", expand=True)
 
-        self.log_area.tag_config("me", foreground="#1E88E5", font=("Arial", 9, "bold"))
+        self.log_area.tag_config("me", foreground="#1E88E5", font=("Arial", 15, "bold"))
         self.log_area.tag_config("system", foreground="#43A047", justify="center")
         self.log_area.tag_config("other", foreground="#424242")
 
         input_frame = tk.Frame(self, bg=bg_color)
         input_frame.pack(side=tk.BOTTOM, fill="x", padx=5, pady=(0, 10))
 
-        self.entry = tk.Entry(input_frame, font=("Arial", 10), relief="flat", bd=1)
+        self.entry = tk.Entry(input_frame, font=("Arial", 15), relief="flat", bd=1)
         self.entry.pack(side=tk.LEFT, fill="x", expand=True, ipady=3)
         self.entry.bind("<Return>", self.send_message)
 
         send_btn = tk.Button(input_frame, text="전송", command=self.send_message, 
-                             bg="#5C6BC0", fg="white", relief="flat", font=("Arial", 9), width=6)
+                             bg="#5C6BC0", fg="black", relief="flat", font=("Arial", 15), width=6)
         send_btn.pack(side=tk.LEFT, padx=(5, 0))
 
     def add_message(self, sender, msg):
