@@ -91,7 +91,7 @@ class HomeApp:
                 constants.CLIENT_SOCKET.send("REQ_QUEUE\n".encode('utf-8'))
                 self.matching_dialog = MatchingDialog(self.master, self.cancel_match)
             except:
-                messagebox.showerror("오류", "서버 연결 끊김")
+                messagebox.showerror("오류", "서버 연결 끊김?")
 
     def cancel_match(self):
         net_client.send_cancel_queue_request()

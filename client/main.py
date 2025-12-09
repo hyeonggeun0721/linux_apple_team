@@ -32,7 +32,7 @@ def start_game_session(event=None):
     for widget in root.winfo_children():
         widget.destroy()
         
-    root.title(f"Net-Mushroom - P{constants.MY_PLAYER_ID + 1}")
+    root.title(f"Net-Apple - P{constants.MY_PLAYER_ID + 1}")
     center_window(root, constants.WINDOW_WIDTH, constants.WINDOW_HEIGHT)
     root.resizable(False, False)
     root.config(bg="white")
@@ -59,8 +59,8 @@ def start_game_session(event=None):
     
     human_bg = tk.Frame(human_score_frame, bg="white")
     human_bg.pack(fill="both")
-    tk.Label(human_bg, text="😊", font=("Arial", 25), bg="white").pack()
-    tk.Label(human_bg, text="나", font=("Arial", 12, "bold"), bg="white").pack()
+    tk.Label(human_bg, text="😊", font=("Arial", 35), bg="white").pack()
+    tk.Label(human_bg, text="나", font=("Arial", 25, "bold"), bg="white").pack()
     human_score_label = tk.Label(human_score_frame, text="0", font=("Arial", 25, "bold"), bg="white")
     human_score_label.pack(pady=5)
 
@@ -77,8 +77,8 @@ def start_game_session(event=None):
     
     ai_bg = tk.Frame(ai_score_frame, bg="white")
     ai_bg.pack(fill="both")
-    tk.Label(ai_bg, text="🤖", font=("Arial", 25), bg="white").pack()
-    tk.Label(ai_bg, text="상대", font=("Arial", 12, "bold"), bg="white").pack()
+    tk.Label(ai_bg, text="🤖", font=("Arial", 35), bg="white").pack()
+    tk.Label(ai_bg, text="상대", font=("Arial", 25, "bold"), bg="white").pack()
     ai_score_label = tk.Label(ai_score_frame, text="0", font=("Arial", 25, "bold"), bg="white")
     ai_score_label.pack(pady=5)
 

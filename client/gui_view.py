@@ -1,6 +1,7 @@
 # client/gui_view.py
 
 import tkinter as tk
+import sys
 from . import constants
 from . import game_model 
 
@@ -41,20 +42,53 @@ def get_cell_coords(event_x, event_y):
 
 def draw_board():
     if not canvas or not game_model.current_game: return
-    canvas.delete("all")
+    canvas.delete("all") # 캔버스 초기화
+
     game = game_model.current_game
+    
+    # 폰트 크기 설정
+    emoji_size = int(constants.CELL_SIZE * 0.75) # 사과 크기
+    number_font = ("Arial", int(constants.FONT_SIZE * 1.3), "bold") # 숫자 폰트
+
     for r in range(game.rows):
         for c in range(game.cols):
             x1, y1 = c * constants.CELL_SIZE, r * constants.CELL_SIZE
             x2, y2 = x1 + constants.CELL_SIZE, y1 + constants.CELL_SIZE
-            bg_color = "white"
-            if game.owner_board[r][c] == 'human': bg_color = "lightblue"
-            elif game.owner_board[r][c] == 'ai': bg_color = "lightcoral"
-            canvas.create_rectangle(x1, y1, x2, y2, outline="gray", width=1, fill=bg_color)
+            
+            center_x = x1 + constants.CELL_SIZE / 2
+            center_y = y1 + constants.CELL_SIZE / 2
+            
+            owner = game.owner_board[r][c]
             number = game.board[r][c]
+
+            # [1단계] 격자(테두리) 그리기 - ★무조건 실행★
+            # 주인이 있든 없든 일단 하얀 네모와 회색 테두리를 그립니다.
+            canvas.create_rectangle(x1, y1, x2, y2, outline="gray", width=1, fill="white")
+
+            # [2단계] 사과 그리기 (주인이 있을 때만)
+            if owner is not None:
+                apple_emoji = "🍏" if owner == 'human' else "🍎"
+                
+                # 맥(Darwin)인지 윈도우인지에 따라 폰트 선택
+                font_family = "Apple Color Emoji" if 'darwin' in sys.platform else "Segoe UI Emoji"
+                
+                canvas.create_text(center_x, center_y, 
+                                   text=apple_emoji, 
+                                   font=(font_family, emoji_size),
+                                   anchor="center")
+
+            # [3단계] 숫자 그리기
             if number != 0:
-                canvas.create_text(x1 + constants.CELL_SIZE/2, y1 + constants.CELL_SIZE/2,
-                                   text=str(number), font=("Arial", constants.FONT_SIZE, "bold"), fill="black")
+                # 사과 위에서도 잘 보이도록 약간의 그림자 효과(선택사항)나 색상 조정
+                text_color = "black"
+                # 만약 사과 색이 진해서 숫자가 안 보이면 흰색으로 변경
+                # text_color = "white" if owner is not None else "black"
+
+                canvas.create_text(center_x, center_y,
+                                   text=str(number), 
+                                   font=number_font, 
+                                   fill=text_color)
+    
     update_score_display()
 
 def update_score_display():

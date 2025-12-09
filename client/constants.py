@@ -4,7 +4,7 @@ import struct
 # 게임 보드 설정
 NUM_ROWS = 10
 NUM_COLS = 17
-CELL_SIZE = 40      
+CELL_SIZE = 50      
 FONT_SIZE = 15      
 
 # 점수판 너비

@@ -191,7 +191,7 @@ int main() {
     init_sessions();
     
     int all_clients[MAX_CLIENTS] = {0}; 
-    printf("Server started (Zero-Start Rank Ver). Waiting...\n");
+    printf("Server started. Waiting...\n");
 
     while (1) {
         fd_set read_fds;
