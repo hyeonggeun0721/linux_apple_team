@@ -1,3 +1,5 @@
+// server/network.c
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -21,7 +23,7 @@ void init_server() {
     
     if (bind(server_fd, (struct sockaddr *)&server_addr, sizeof(server_addr)) == -1) exit(EXIT_FAILURE);
     
-    // [수정] 대기열 크기를 2에서 30으로 증가 (다중 접속 허용)
+    // 대기열 크기를 30으로 설정 (다중 접속 허용)
     if (listen(server_fd, 30) == -1) exit(EXIT_FAILURE);
     
     printf("Server listening on port %d...\n", PORT);

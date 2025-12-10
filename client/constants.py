@@ -1,34 +1,32 @@
 # client/constants.py
+
 import struct
 
-# 게임 보드 설정
+# --- 게임 보드 설정 ---
 NUM_ROWS = 10
 NUM_COLS = 17
 CELL_SIZE = 50      
 FONT_SIZE = 15      
 
-# 점수판 너비
+# UI 레이아웃 크기 설정
 SCOREBOARD_WIDTH = 80 
-
-# 채팅창 너비
 CHAT_WIDTH = 300    
 
-# 윈도우 너비 계산
+# 윈도우 전체 크기 자동 계산
 WINDOW_WIDTH = (NUM_COLS * CELL_SIZE) + (SCOREBOARD_WIDTH * 2) + CHAT_WIDTH + 30
 WINDOW_HEIGHT = (NUM_ROWS * CELL_SIZE) + 120 
 
-# 네트워크 설정
+# --- 네트워크 접속 정보 ---
 SERVER_IP = "10.125.234.111" 
 SERVER_PORT = 8080
 
+# --- 전역 상태 변수 ---
 CLIENT_SOCKET = None
 MY_PLAYER_ID = -1
 RECV_THREAD_STARTED = False
+CURRENT_HOME_INSTANCE = None # 로비 화면 UI 갱신용
 
-# [추가] 현재 실행 중인 홈 화면(로비) 객체를 저장할 변수
-CURRENT_HOME_INSTANCE = None
-
-# 통신 프로토콜
+# --- 통신 프로토콜 설정 ---
 PACKET_HEADER_FORMAT = '>IH'
 HEADER_SIZE = struct.calcsize(PACKET_HEADER_FORMAT)
 

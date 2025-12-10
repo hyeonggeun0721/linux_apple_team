@@ -1,3 +1,5 @@
+// server/database.h
+
 #ifndef DATABASE_H
 #define DATABASE_H
 
@@ -6,7 +8,7 @@
 // DB 파일 이름
 #define DB_NAME "game.db"
 
-// 전역 DB 객체 (필요시)
+// 전역 DB 객체
 extern sqlite3 *db;
 
 // 기본 함수

@@ -1,6 +1,5 @@
 CC = gcc
 CFLAGS = -Wall -g
-# [중요] -lm 추가 (Elo 계산 시 pow 함수 사용을 위해 필수)
 LIBS = -lpthread -ldl -lm
 
 TARGET = server

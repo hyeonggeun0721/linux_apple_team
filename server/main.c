@@ -1,3 +1,5 @@
+// server/main.c
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -157,7 +159,7 @@ int check_valid_move(GameSession *s, int r1, int c1, int r2, int c2) {
     return 0;
 }
 
-// ★ [추가] 현재 세션에서 더 이상 가능한 수가 있는지 전수조사
+// 현재 세션에서 더 이상 가능한 수가 있는지 전수조사
 int check_any_possible_move(GameSession *s) {
     for (int r1 = 0; r1 < BOARD_ROWS; r1++) {
         for (int c1 = 0; c1 < BOARD_COLS; c1++) {
@@ -367,7 +369,7 @@ int main() {
                                         char res[100]; sprintf(res, "VALID %d %d %d %d %d %d %d\n", pid, r1, c1, r2, c2, s->scores[0], s->scores[1]);
                                         write(s->p1_fd, res, strlen(res)); write(s->p2_fd, res, strlen(res));
 
-                                        // ★ [수정됨] 세션 기반으로 판독 로직 추가
+                                        // 세션 기반으로 판독 로직 추가
                                         if (check_any_possible_move(s) == 0) {
                                             printf("[GAME] Session %d: No more moves. Game Over.\n", s_idx);
                                             

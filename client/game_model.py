@@ -2,6 +2,7 @@
 
 import random
 
+# 현재 진행 중인 게임 상태 저장
 current_game = None
 start_x, start_y = -1, -1
 
@@ -10,16 +11,19 @@ class Game:
         self.board = board_data_param
         self.rows = len(self.board)
         self.cols = len(self.board[0])
+        # 각 칸의 소유자 정보 저장 (human/ai/none)
         self.owner_board = [['none' for _ in range(self.cols)] for _ in range(self.rows)]
         self.player_scores = {"human": 0, "ai": 0}
         self.current_turn = "human" if first_player_is_human else "ai"
         self.consecutive_passes = 0
         self.game_over = False
 
+    # 드래그한 영역이 유효한 수인지 검증하는 로직 (합이 10이 되는지 등)
     def isValid(self, r1, c1, r2, c2):
         sums = 0
         r1_has_val, r2_has_val, c1_has_val, c2_has_val = False, False, False, False
         
+        # 보드 범위 체크
         if not (0 <= r1 <= r2 < self.rows and 0 <= c1 <= c2 < self.cols):
             return False
             
@@ -29,6 +33,7 @@ class Game:
                 if self.board[r][c] != 0:
                     all_zero = False
                     sums += self.board[r][c]
+                    # 선택 영역의 네 모서리에 숫자가 존재하는지 확인
                     if r == r1: r1_has_val = True
                     if r == r2: r2_has_val = True
                     if c == c1: c1_has_val = True
@@ -37,6 +42,7 @@ class Game:
         if all_zero: return False
         return sums == 10 and r1_has_val and r2_has_val and c1_has_val and c2_has_val
 
+# 초기 보드 데이터 생성 (서버 데이터 수신 전 테스트용)
 def initialize_board_data():
     new_board = []
     for r in range(10): 

@@ -1,3 +1,5 @@
+// server/network.h
+
 #ifndef NETWORK_H
 #define NETWORK_H
 #include <netinet/in.h>

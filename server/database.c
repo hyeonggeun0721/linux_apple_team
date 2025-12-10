@@ -1,8 +1,10 @@
+// server/database.c
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-#include <math.h> // [필수] Makefile에 -lm 옵션 필요
+#include <math.h>
 #include "sqlite3.h"
 #include "database.h"
 
@@ -29,7 +31,6 @@ int init_database() {
     }
     printf("[DB] Database opened successfully\n");
 
-    // [수정] MMR 기본값 0으로 변경
     char *sql_users = 
         "CREATE TABLE IF NOT EXISTS Users (" \
         "ID TEXT PRIMARY KEY," \
@@ -176,7 +177,7 @@ char* get_user_history(char *user_id) {
 int get_user_mmr(char *user_id) {
     char sql[256];
     sqlite3_stmt *stmt;
-    int mmr = 0; // [수정] 기본값 0
+    int mmr = 0;
 
     sprintf(sql, "SELECT MMR FROM Users WHERE ID='%s';", user_id);
     
@@ -189,7 +190,7 @@ int get_user_mmr(char *user_id) {
     return mmr;
 }
 
-// [수정] 0점 기준 티어 구간 재설정
+// 0점 기준 티어 구간 재설정
 const char* calculate_tier(int mmr) {
     if (mmr < 100) return "BRONZE";
     if (mmr < 200) return "SILVER";

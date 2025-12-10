@@ -1,3 +1,5 @@
+// server/game_logic.c
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -40,7 +42,7 @@ int isValid(int r1, int c1, int r2, int c2) {
 
     int sum = 0;
     int r1_h = 0, r2_h = 0, c1_h = 0, c2_h = 0;
-    int has_non_zero = 0; // [수정] 변수명 통일 및 로직 강화
+    int has_non_zero = 0; // 변수명 통일 및 로직 강화
 
     for (int r = r1; r <= r2; r++) {
         for (int c = c1; c <= c2; c++) {

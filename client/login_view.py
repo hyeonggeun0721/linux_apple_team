@@ -6,7 +6,7 @@ import socket
 import threading
 from . import constants 
 
-# 창을 중앙으로 이동시키는 헬퍼 함수
+# 창을 화면 중앙에 배치하는 함수
 def center_window(window, width, height):
     screen_width = window.winfo_screenwidth()
     screen_height = window.winfo_screenheight()
@@ -15,19 +15,16 @@ def center_window(window, width, height):
     window.geometry(f'{width}x{height}+{x}+{y}')
 
 class RegisterDialog(tk.Toplevel):
-    """회원가입 팝업 창 (연결 유지 최적화)"""
+    """회원가입 팝업 창"""
     def __init__(self, parent):
         super().__init__(parent)
         self.title("회원가입")
-        #self.geometry("400x500")
         self.resizable(False, False)
         self.parent = parent
         self.configure(bg="#F0F0F0")
 
-        # [수정] 중앙 배치
         center_window(self, 400, 500)
         
-        # [최적화 1] 창 열릴 때 서버 연결
         self.socket = None
         self._connect_to_server()
         
@@ -52,17 +49,14 @@ class RegisterDialog(tk.Toplevel):
         form_frame = tk.Frame(self, bg="#F0F0F0")
         form_frame.pack(pady=10)
         
-        # 닉네임
         tk.Label(form_frame, text="닉네임:", bg="#F0F0F0").grid(row=0, column=0, sticky="e", pady=5)
         self.entry_nick = tk.Entry(form_frame)
         self.entry_nick.grid(row=0, column=1, pady=5, padx=5)
         
-        # 아이디
         tk.Label(form_frame, text="아이디:", bg="#F0F0F0").grid(row=1, column=0, sticky="e", pady=5)
         self.entry_id = tk.Entry(form_frame)
         self.entry_id.grid(row=1, column=1, pady=5, padx=5)
 
-        # 비밀번호
         tk.Label(form_frame, text="비밀번호:", bg="#F0F0F0").grid(row=2, column=0, sticky="e", pady=5)
         self.entry_pw = tk.Entry(form_frame, show="*")
         self.entry_pw.grid(row=2, column=1, pady=5, padx=5)
@@ -78,7 +72,6 @@ class RegisterDialog(tk.Toplevel):
             messagebox.showwarning("입력", "모든 내용을 입력해주세요.")
             return
 
-        # [최적화 2] 이미 연결된 소켓 사용
         if not self.socket: return
 
         try:
@@ -99,18 +92,14 @@ class RegisterDialog(tk.Toplevel):
 
 
 class LoginApp:
-    """로그인 화면 (연결 유지 최적화)"""
+    """로그인 메인 화면"""
     def __init__(self, master, on_login_success):
         self.master = master
         self.on_login_success = on_login_success
         master.title("Net-Mushroom - 접속")
-        #master.geometry("350x450")
         master.resizable(False, False)
-
-        # [수정] 중앙 배치
         center_window(master, 350, 450)
         
-        # [최적화 1] 앱 시작 시 서버 연결
         self.socket = None
         self._connect_to_server()
         
@@ -177,13 +166,9 @@ class LoginApp:
             data = self.socket.recv(1024).decode().strip()
             
             if "RES_LOGIN_SUCCESS" in data:
-                # ★ [수정] 소켓을 지역 변수에 백업해두고 전달 (중요!)
                 connected_socket = self.socket
-                
-                # lambda 안에서 self.socket 대신 connected_socket을 사용
                 self.master.after(0, lambda: self.on_login_success(connected_socket, uid))
-                
-                self.socket = None # 이제 초기화해도 안전함
+                self.socket = None 
             else:
                 self.status_label.config(text="로그인 실패", fg="red")
                 messagebox.showerror("실패", "아이디 또는 비밀번호가 틀렸습니다.")

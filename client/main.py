@@ -8,7 +8,6 @@ import socket
 from . import constants
 from . import game_model
 from . import net_client
-# [추가] chat_view에서 ChatPanel 가져오기
 from .chat_view import ChatPanel
 from .gui_view import setup_gui_elements, draw_board, update_canvas_cursor, \
                        draw_selection_rectangle, clear_selection_rectangle, get_cell_coords, update_score_display
@@ -24,11 +23,12 @@ def center_window(window, width, height):
     window.geometry(f'{width}x{height}+{x}+{y}')
 
 # =================================================================
-# 1. 게임 화면 실행
+# 1. 게임 화면 구성 및 시작
 # =================================================================
 def start_game_session(event=None):
     global root, canvas
     
+    # 기존 UI 제거
     for widget in root.winfo_children():
         widget.destroy()
         
@@ -49,33 +49,27 @@ def start_game_session(event=None):
     left_container = tk.Frame(main_container, bg="white")
     left_container.pack(side=tk.LEFT, fill="both", expand=True)
 
-    # A. 게임 보드와 점수판이 들어갈 상단 프레임
-    # fill="both", expand=True를 주어 높이를 최대한 확보합니다.
+    # A. 게임 보드와 점수판 컨테이너
     board_score_frame = tk.Frame(left_container, bg="white")
     board_score_frame.pack(side=tk.TOP, fill="both", expand=True, pady=(0, 10))
 
-    # [수정 1] P1 점수 영역 (나) - 세로 꽉 채우기
+    # P1 (나) 점수 영역
     human_score_frame = tk.Frame(board_score_frame, bg="white")
-    # fill="both"로 세로 길이를 부모(보드 높이)만큼 늘립니다.
     human_score_frame.pack(side=tk.LEFT, expand=True, fill="both")
     
     human_bg = tk.Frame(human_score_frame, bg="white")
     human_bg.pack(fill="both", expand=True) 
 
-    # ★ 내용을 수직 중앙에 두기 위한 투명 스페이서 (위쪽)
+    # 수직 정렬용 스페이서
     tk.Label(human_bg, text="", bg="white").pack(fill="both", expand=True)
-
-    # 내용물 (이모티콘, 이름, 점수)
     tk.Label(human_bg, text="🍎", font=("Arial", 45), bg="white").pack()
     tk.Label(human_bg, text="나", font=("Arial", 25, "bold"), bg="white").pack()
     human_score_label = tk.Label(human_bg, text="0", font=("Arial", 25, "bold"), bg="white")
     human_score_label.pack(pady=5)
-
-    # ★ 내용을 수직 중앙에 두기 위한 투명 스페이서 (아래쪽)
     tk.Label(human_bg, text="", bg="white").pack(fill="both", expand=True)
 
 
-    # [수정 2] 게임 보드 (Canvas)
+    # 게임 보드 (캔버스)
     canvas = tk.Canvas(board_score_frame, 
                        width=constants.NUM_COLS * constants.CELL_SIZE, 
                        height=constants.NUM_ROWS * constants.CELL_SIZE, 
@@ -83,23 +77,19 @@ def start_game_session(event=None):
     canvas.pack(side=tk.LEFT, padx=5)
 
 
-    # [수정 3] P2 점수 영역 (상대) - 세로 꽉 채우기
+    # P2 (상대) 점수 영역
     ai_score_frame = tk.Frame(board_score_frame, bg="white")
     ai_score_frame.pack(side=tk.LEFT, expand=True, fill="both")
     
     ai_bg = tk.Frame(ai_score_frame, bg="white")
     ai_bg.pack(fill="both", expand=True)
 
-    # ★ 위쪽 스페이서
+    # 수직 정렬용 스페이서
     tk.Label(ai_bg, text="", bg="white").pack(fill="both", expand=True)
-
-    # 내용물
     tk.Label(ai_bg, text="🍏", font=("Arial", 45), bg="white").pack()
     tk.Label(ai_bg, text="상대", font=("Arial", 25, "bold"), bg="white").pack()
     ai_score_label = tk.Label(ai_bg, text="0", font=("Arial", 25, "bold"), bg="white")
     ai_score_label.pack(pady=5)
-
-    # ★ 아래쪽 스페이서
     tk.Label(ai_bg, text="", bg="white").pack(fill="both", expand=True)
 
 
@@ -136,7 +126,7 @@ def start_game_session(event=None):
     canvas.bind("<B1-Motion>", handle_canvas_drag)
     canvas.bind("<ButtonRelease-1>", handle_canvas_release)
     
-    # 초기화
+    # 게임 상태 초기화
     is_p1 = (constants.MY_PLAYER_ID == 0)
     game_model.current_game = game_model.Game(game_model.initialize_board_data(), first_player_is_human=is_p1)
     
@@ -145,10 +135,11 @@ def start_game_session(event=None):
     update_score_display()
 
 # =================================================================
-# 2. 버튼 및 이벤트 핸들러
+# 2. 이벤트 핸들러
 # =================================================================
 
 def track_mouse_cursor(event):
+    """턴에 따라 마우스 커서 모양 변경"""
     if not root or not canvas: return
     x, y = root.winfo_pointerxy()
     widget_under_mouse = root.winfo_containing(x, y)
@@ -178,6 +169,7 @@ def confirm_surrender():
         net_client.send_surrender_request()
 
 def handle_canvas_release(event):
+    """드래그 종료 시 이동 요청"""
     r1, c1 = get_cell_coords(game_model.start_x, game_model.start_y)
     r2, c2 = get_cell_coords(event.x, event.y)
     fr1, fr2 = min(r1, r2), max(r1, r2)
@@ -187,12 +179,14 @@ def handle_canvas_release(event):
     game_model.start_x, game_model.start_y = -1, -1
 
 def handle_canvas_press(event):
+    """드래그 시작 좌표 기록"""
     if not game_model.current_game or game_model.current_game.game_over: return
     if game_model.current_game.current_turn != "human": return
     game_model.start_x, game_model.start_y = event.x, event.y
     clear_selection_rectangle()
 
 def handle_canvas_drag(event):
+    """드래그 중 선택 영역 표시"""
     if not game_model.current_game or game_model.current_game.game_over or game_model.start_x == -1: return
     end_x = max(0, min(event.x, constants.NUM_COLS * constants.CELL_SIZE - 1))
     end_y = max(0, min(event.y, constants.NUM_ROWS * constants.CELL_SIZE - 1))
@@ -204,10 +198,12 @@ def handle_canvas_drag(event):
     draw_selection_rectangle(game_model.start_x, game_model.start_y, end_x, end_y, color)
 
 # =================================================================
-# 3. 메인 실행
+# 3. 메인 실행 (로그인 후 로비 진입)
 # =================================================================
 def start_home_screen(socket_obj, user_id, user_data=None):
     if user_data is None: user_data = {}
+    
+    # 기존 창 제거 후 로비 UI 생성
     for widget in root.winfo_children(): widget.destroy()
 
     constants.CLIENT_SOCKET = socket_obj

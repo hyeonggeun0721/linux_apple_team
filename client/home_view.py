@@ -30,7 +30,7 @@ class HomeApp:
         self.user_id = user_id
         self.user_data = user_data
         
-        # [핵심 추가] 현재 홈 화면 인스턴스를 전역 변수에 등록 (외부 접근용)
+        # UI 갱신을 위해 현재 인스턴스를 전역 변수에 등록
         constants.CURRENT_HOME_INSTANCE = self
         
         self.master.title("Net-Apple - 로비")
@@ -39,11 +39,9 @@ class HomeApp:
         
         self._create_widgets()
 
-    # [핵심 추가] 외부(net_client)에서 호출하는 UI 갱신 함수
     def update_user_info(self, new_mmr, new_tier):
-        # 내부 데이터 업데이트
+        """서버로부터 갱신된 정보로 UI 업데이트"""
         self.user_data['mmr'] = new_mmr
-        # UI 라벨 즉시 변경
         if hasattr(self, 'mmr_label'):
             self.mmr_label.config(text=f"점수 (MMR): {new_mmr} ({new_tier})")
 
@@ -59,8 +57,6 @@ class HomeApp:
         mmr = self.user_data.get('mmr', 0)
 
         tk.Label(info_frame, text=f"닉네임: {nick}", font=("Arial", 16, "bold"), bg="white").pack(anchor="w", pady=5)
-        
-        # [수정] 나중에 텍스트를 바꾸기 위해 self 변수에 저장
         self.mmr_label = tk.Label(info_frame, text=f"점수 (MMR): {mmr}", font=("Arial", 14), bg="white", fg="#00695C")
         self.mmr_label.pack(anchor="w", pady=5)
 
@@ -88,21 +84,13 @@ class HomeApp:
     def request_match(self):
         if constants.CLIENT_SOCKET:
             try:
-                # 1. 서버 전송 시도
                 constants.CLIENT_SOCKET.send("REQ_QUEUE\n".encode('utf-8'))
-                
-                # 2. 다이얼로그 띄우기 (여기서 에러나면 서버 문제가 아님)
                 self.matching_dialog = MatchingDialog(self.master, self.cancel_match)
-
             except OSError as e:
-                # 진짜 소켓/연결 관련 에러인 경우에만 실행
                 print(f"[Network Error] {e}") 
                 messagebox.showerror("오류", "서버 연결 끊김")
-                
             except Exception as e:
-                # 그 외 파이썬 코드 에러 (MatchingDialog 내부 오류 등)
                 print(f"[Logic Error] {e}") 
-                # 여기서 터미널을 보면 'NameError'나 'AttributeError'가 떠 있을 확률이 높습니다.
 
     def cancel_match(self):
         net_client.send_cancel_queue_request()

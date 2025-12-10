@@ -1,3 +1,5 @@
+# client/chat_view.py
+
 import tkinter as tk
 from tkinter import font
 from . import net_client
@@ -7,8 +9,10 @@ class ChatPanel(tk.Frame):
         super().__init__(parent, width=width, height=height, bg=bg_color)
         self.pack_propagate(False) # 크기 고정
 
+        # 상단 라벨
         tk.Label(self, text="실시간 채팅", bg=bg_color, font=("Arial", 10, "bold"), fg="#555").pack(side=tk.TOP, pady=(5, 0))
 
+        # 채팅 로그 영역 (스크롤바 포함)
         log_frame = tk.Frame(self, bg=bg_color)
         log_frame.pack(side=tk.TOP, fill="both", expand=True, padx=5, pady=5)
 
@@ -20,10 +24,12 @@ class ChatPanel(tk.Frame):
         self.scrollbar.pack(side=tk.RIGHT, fill="y")
         self.log_area.pack(side=tk.LEFT, fill="both", expand=True)
 
+        # 메시지 스타일 설정
         self.log_area.tag_config("me", foreground="#1E88E5", font=("Arial", 15, "bold"))
         self.log_area.tag_config("system", foreground="#43A047", justify="center")
         self.log_area.tag_config("other", foreground="#424242")
 
+        # 입력창 영역
         input_frame = tk.Frame(self, bg=bg_color)
         input_frame.pack(side=tk.BOTTOM, fill="x", padx=5, pady=(0, 10))
 
@@ -36,6 +42,7 @@ class ChatPanel(tk.Frame):
         send_btn.pack(side=tk.LEFT, padx=(5, 0))
 
     def add_message(self, sender, msg):
+        """채팅 로그에 메시지 추가"""
         self.log_area.config(state=tk.NORMAL)
         tag = "other"
         display_text = f"[{sender}] {msg}\n"
@@ -50,6 +57,7 @@ class ChatPanel(tk.Frame):
         self.log_area.config(state=tk.DISABLED)
 
     def send_message(self, event=None):
+        """메시지 전송 요청"""
         msg = self.entry.get().strip()
         if not msg: return
         net_client.send_chat_request(msg)
